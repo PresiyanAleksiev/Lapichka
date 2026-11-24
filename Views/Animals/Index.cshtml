@@ -1,0 +1,79 @@
+@model AnimalListViewModel
+@{
+    ViewData["Title"] = "Животни";
+}
+
+<h1 class="mb-4">Животни, търсещи дом</h1>
+
+<form method="get" asp-action="Index" class="row g-2 mb-4">
+    <div class="col-md-6">
+        <input type="text" name="search" value="@Model.Search" class="form-control" placeholder="Търси по име или вид..." />
+    </div>
+    <div class="col-md-4">
+        <select name="speciesId" class="form-select">
+            <option value="">Всички видове</option>
+            @foreach (var s in Model.AllSpecies)
+            {
+                <option value="@s.Id" selected="@(Model.SpeciesId == s.Id)">@s.Name</option>
+            }
+        </select>
+    </div>
+    <div class="col-md-2 d-grid">
+        <button type="submit" class="btn btn-primary">Търси</button>
+    </div>
+</form>
+
+@if (!Model.Animals.Any())
+{
+    <div class="alert alert-info">Няма намерени животни.</div>
+}
+else
+{
+    <p class="text-muted">Намерени: @Model.TotalCount</p>
+
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-4">
+        @foreach (var a in Model.Animals)
+        {
+            <div class="col">
+                <div class="card h-100 shadow-sm">
+                    <partial name="_AnimalPhoto" model="a" />
+                    <div class="card-body">
+                        <h5 class="card-title">@a.Name</h5>
+                        <p class="card-text text-muted mb-2">
+                            @a.Species?.Name
+                            @if (!string.IsNullOrEmpty(a.Breed)) { <text>· @a.Breed</text> }
+                            · @a.Age г. · @a.Gender.GetDisplayName()
+                        </p>
+                        <p class="card-text">@(a.Description.Length > 100 ? a.Description[..100] + "..." : a.Description)</p>
+                    </div>
+                    <div class="card-footer bg-transparent border-0">
+                        <a asp-action="Details" asp-route-id="@a.Id" class="btn btn-outline-primary btn-sm">Виж повече</a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    @if (Model.TotalPages > 1)
+    {
+        <nav class="mt-4">
+            <ul class="pagination justify-content-center">
+                <li class="page-item @(Model.Page == 1 ? "disabled" : "")">
+                    <a class="page-link" asp-action="Index" asp-route-page="@(Model.Page - 1)"
+                       asp-route-search="@Model.Search" asp-route-speciesId="@Model.SpeciesId">«</a>
+                </li>
+                @for (var p = 1; p <= Model.TotalPages; p++)
+                {
+                    <li class="page-item @(p == Model.Page ? "active" : "")">
+                        <a class="page-link" asp-action="Index" asp-route-page="@p"
+                           asp-route-search="@Model.Search" asp-route-speciesId="@Model.SpeciesId">@p</a>
+                    </li>
+                }
+                <li class="page-item @(Model.Page == Model.TotalPages ? "disabled" : "")">
+                    <a class="page-link" asp-action="Index" asp-route-page="@(Model.Page + 1)"
+                       asp-route-search="@Model.Search" asp-route-speciesId="@Model.SpeciesId">»</a>
+                </li>
+            </ul>
+        </nav>
+    }
+}

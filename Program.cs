@@ -36,6 +36,20 @@ using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     await db.Database.EnsureCreatedAsync();
+
+    // EnsureCreated не добавя нови таблици към вече съществуваща база.
+    // Ако базата е от по-стара версия (без таблица Animals), в Development я пресъздаваме.
+    try
+    {
+        await db.Animals.AnyAsync();
+    }
+    catch (Microsoft.Data.SqlClient.SqlException) when (app.Environment.IsDevelopment())
+    {
+        app.Logger.LogWarning("Базата е от стара версия – пресъздава се.");
+        await db.Database.EnsureDeletedAsync();
+        await db.Database.EnsureCreatedAsync();
+    }
+
     await DbSeeder.SeedAsync(scope.ServiceProvider);
 }
 

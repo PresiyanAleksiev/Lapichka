@@ -1,0 +1,66 @@
+@model Animal
+@{
+    ViewData["Title"] = Model.Name;
+}
+
+<a asp-action="Index" class="btn btn-link px-0 mb-3">← Назад към списъка</a>
+
+<div class="row g-4">
+    <div class="col-md-5">
+        <div class="card shadow-sm">
+            <partial name="_AnimalPhoto" model="Model" />
+        </div>
+    </div>
+    <div class="col-md-7">
+        <h1>@Model.Name</h1>
+        <span class="badge @(Model.Status == AnimalStatus.Adopted ? "bg-secondary" : "bg-success") mb-3">
+            @Model.Status.GetDisplayName()
+        </span>
+
+        <dl class="row">
+            <dt class="col-sm-4">Вид</dt>
+            <dd class="col-sm-8">@Model.Species?.Name</dd>
+
+            <dt class="col-sm-4">Порода</dt>
+            <dd class="col-sm-8">@(string.IsNullOrEmpty(Model.Breed) ? "—" : Model.Breed)</dd>
+
+            <dt class="col-sm-4">Възраст</dt>
+            <dd class="col-sm-8">@Model.Age г.</dd>
+
+            <dt class="col-sm-4">Пол</dt>
+            <dd class="col-sm-8">@Model.Gender.GetDisplayName()</dd>
+        </dl>
+
+        <p>@Model.Description</p>
+    </div>
+</div>
+
+<h3 class="mt-5">Ваксинации и ветеринарни процедури</h3>
+@if (!Model.VetProcedures.Any())
+{
+    <p class="text-muted">Няма въведени процедури.</p>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Дата</th>
+                <th>Процедура</th>
+                <th>Ветеринарен лекар</th>
+                <th>Бележки</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var p in Model.VetProcedures)
+            {
+                <tr>
+                    <td>@p.PerformedOn.ToString("dd.MM.yyyy")</td>
+                    <td>@p.Type.GetDisplayName()</td>
+                    <td>@p.Veterinarian</td>
+                    <td>@p.Notes</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
